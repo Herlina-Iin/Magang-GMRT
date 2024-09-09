@@ -1,0 +1,99 @@
+// Deklarasi pin sensor inframerah
+const int sensorKiri = 34; // Sensor kiri terhubung ke pin GPIO 34 ESP32
+const int sensorKanan = 35; // Sensor kanan terhubung ke pin GPIO 35 ESP32
+
+// Deklarasi pin motor
+const int motorKiriForward = 26; // Motor kiri bergerak maju
+const int motorKiriBackward = 27; // Motor kiri bergerak mundur
+const int motorKananForward = 14; // Motor kanan bergerak maju
+const int motorKananBackward = 12; // Motor kanan bergerak mundur
+
+// Variabel untuk menyimpan status sensor
+int bacaSensorKiri;
+int bacaSensorKanan;
+
+// Fungsi setup untuk inisialisasi pin
+void setup() {
+  // Inisialisasi serial monitor untuk debugging
+  Serial.begin(115200);
+  
+  // Inisialisasi pin motor sebagai output
+  pinMode(motorKiriForward, OUTPUT);
+  pinMode(motorKiriBackward, OUTPUT);
+  pinMode(motorKananForward, OUTPUT);
+  pinMode(motorKananBackward, OUTPUT);
+  
+  // Inisialisasi pin sensor inframerah sebagai input
+  pinMode(sensorKiri, INPUT);
+  pinMode(sensorKanan, INPUT);
+}
+
+// Fungsi untuk menghentikan motor
+void stopMotor() {
+  digitalWrite(motorKiriForward, LOW);
+  digitalWrite(motorKiriBackward, LOW);
+  digitalWrite(motorKananForward, LOW);
+  digitalWrite(motorKananBackward, LOW);
+}
+
+// Fungsi untuk menggerakkan robot maju
+void maju() {
+  digitalWrite(motorKiriForward, HIGH);
+  digitalWrite(motorKiriBackward, LOW);
+  digitalWrite(motorKananForward, HIGH);
+  digitalWrite(motorKananBackward, LOW);
+}
+
+// Fungsi untuk menggerakkan robot belok ke kiri
+void belokKiri() {
+  digitalWrite(motorKiriForward, LOW);
+  digitalWrite(motorKiriBackward, LOW);
+  digitalWrite(motorKananForward, HIGH);
+  digitalWrite(motorKananBackward, LOW);
+}
+
+// Fungsi untuk menggerakkan robot belok ke kanan
+void belokKanan() {
+  digitalWrite(motorKiriForward, HIGH);
+  digitalWrite(motorKiriBackward, LOW);
+  digitalWrite(motorKananForward, LOW);
+  digitalWrite(motorKananBackward, LOW);
+}
+
+// Fungsi utama (loop) yang akan terus berjalan
+void loop() {
+  // Membaca nilai sensor inframerah
+  bacaSensorKiri = digitalRead(sensorKiri);
+  bacaSensorKanan = digitalRead(sensorKanan);
+
+  // Logika untuk mengikuti garis
+  if (bacaSensorKiri == LOW && bacaSensorKanan == LOW) {
+    // Jika kedua sensor mendeteksi hitam, robot maju
+    maju();
+    Serial.println("Maju");
+  } else if (bacaSensorKiri == LOW && bacaSensorKanan == HIGH) {
+    // Jika sensor kiri hitam, sensor kanan putih, belok ke kiri
+    belokKiri();
+    Serial.println("Belok Kiri");
+  } else if (bacaSensorKiri == HIGH && bacaSensorKanan == LOW) {
+    // Jika sensor kiri putih, sensor kanan hitam, belok ke kanan
+    belokKanan();
+    Serial.println("Belok Kanan");
+  } else {
+    // Jika kedua sensor putih, berhenti (mungkin keluar dari garis)
+    stopMotor();
+    Serial.println("Stop");
+  }
+
+  // Deteksi garis hitam tebal atau kotak hitam (titik B)
+  if (bacaSensorKiri == LOW && bacaSensorKanan == LOW) {
+    // Robot mendeteksi kotak hitam di titik B, berhenti dan tunggu
+    stopMotor();
+    Serial.println("Sampai di Titik B, menunggu 5 detik");
+    delay(5000); // Tunggu 5 detik
+    
+    // Setelah menunggu, robot akan kembali mengikuti garis
+    Serial.println("Kembali ke Titik A");
+    // Ulangi loop untuk kembali ke titik A mengikuti jalur
+  }
+}
